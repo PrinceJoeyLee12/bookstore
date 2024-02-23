@@ -1,25 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from 'react';
+import { enqueueSnackbar, useSnackbar } from 'notistack';
+import { slice as alertSlice } from 'redux/slices/alert/alert';
+import { useSelector, dispatch } from 'redux/store';
+// routes
+import Router from './routes';
+import ScrollToTop from './components/ScrollToTop';
+import { ProgressBarStyle } from './components/ProgressBar';
 
-function App() {
+// ----------------------------------------------------------------------
+
+export default function App() {
+  const { enqueueSnackbar } = useSnackbar();
+  const alerts = useSelector((state) => state.alert.alerts);
+
+  useEffect(() => {
+    if (alerts?.length) {
+      alerts.forEach((alert) => {
+        const shouldPersist = !alert?.timeout && Boolean(alert?.message?.length > 20);
+        enqueueSnackbar(`${alert?.message ?? ''}`, {
+          variant: alert.type || 'error',
+          persist: shouldPersist,
+          key: alert.id,
+        });
+      });
+
+      dispatch(alertSlice.actions.removeAllAlerts());
+    }
+  }, [alerts]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <ProgressBarStyle />
+      <ScrollToTop />
+      <Router />
+    </>
   );
 }
-
-export default App;
